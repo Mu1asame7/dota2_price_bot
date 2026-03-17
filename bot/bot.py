@@ -110,6 +110,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /profile"""
+    user = update.effective_user
+    try:
+        get_user = sync_to_async(TelegramUser.objects.get)
+        telegram_user = await get_user(user_id=user.id)
+
+        total_queries = await sync_to_async(
+            ItemQuery.objects.filter(user=telegram_user).count
+        )()
+
+        await update.message.reply_text(f"📊 Всего запросов: {total_queries}")
+
+    except TelegramUser.DoesNotExist:
+        await update.message.reply_text(
+            "Пожалуйста, сначала введите /start для регистрации."
+        )
+
+
 def main():
     """Запуск бота"""
     import os
@@ -136,6 +155,7 @@ def main():
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
     )
+    application.add_handler(CommandHandler("profile", profile_command))
 
     # Запускаем бота
     logger.info("Бот запущен...")
