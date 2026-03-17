@@ -21,3 +21,6 @@ USER appuser
 
 # Команда по умолчанию (она будет переопределена в docker-compose)
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
