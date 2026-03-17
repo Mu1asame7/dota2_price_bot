@@ -3,6 +3,7 @@ services:
   - type: web
     name: dota2-bot-django
     runtime: python
+    plan: free
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
@@ -11,19 +12,22 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: dota2-bot-db
+          name: dota2-bot-database
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: false
       - key: TELEGRAM_BOT_TOKEN
-        sync: false  # Будешь вводить вручную
+        sync: false
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
 
   # Telegram бот (background worker)
   - type: worker
     name: dota2-bot-worker
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python manage.py runbot
     envVars:
@@ -34,8 +38,14 @@ services:
           name: dota2-bot-django
           type: web
           envVarKey: SECRET_KEY
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dota2-bot-database
+          property: connectionString
 
-  # База данных PostgreSQL
-  - type: pserv
-    name: dota2-bot-db
+# Отдельное объявление базы данных PostgreSQL
+databases:
+  - name: dota2-bot-database
     plan: free
+    databaseName: dota2_bot
+    user: dota2_bot_user
