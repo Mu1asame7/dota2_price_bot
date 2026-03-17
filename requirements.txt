@@ -1,8 +1,8 @@
-# Стабильные версии для Python 3.12
+# Идеально совместимый набор для python-telegram-bot 20.3
 Django==5.0.8
 python-telegram-bot==20.3
-httpx==0.24.1  # 👈 ИЗМЕНЕНО: версия, совместимая с python-telegram-bot 20.3
-httpcore==1.0.5
+httpx==0.24.1          # Совместима с python-telegram-bot 20.3
+httpcore==0.17.3       # Совместима с httpx 0.24.1 (версия <0.18.0)
 certifi==2024.7.4
 requests==2.31.0
 python-dotenv==1.0.0
