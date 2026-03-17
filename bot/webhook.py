@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 application = None
 
 
-def get_application():
-    """Создает или возвращает существующее приложение"""
+async def get_application():
+    """Создает или возвращает существующее приложение (асинхронно)"""
     global application
     if application is None:
         print("⚙️ Создаю новое приложение Telegram")
@@ -37,8 +37,8 @@ def get_application():
             MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
         )
 
-        # 👇 ВОТ ЭТА СТРОКА РЕШАЕТ ПРОБЛЕМУ!
-        application.initialize()
+        # 👇 ВАЖНО: await перед асинхронным методом!
+        await application.initialize()
 
         print("✅ Telegram application initialized")
     return application
@@ -46,21 +46,21 @@ def get_application():
 
 @csrf_exempt
 def telegram_webhook(request):
-    """
-    Обработчик вебхука от Telegram.
-    Этот URL нужно будет установить через set_webhook.
-    """
+    """Обработчик вебхука от Telegram"""
     if request.method == "POST":
         try:
             # Получаем JSON от Telegram
             json_str = request.body.decode("UTF-8")
             logger.debug(f"Received webhook data: {json_str[:200]}...")
 
-            # Преобразуем в Update объект
-            update = Update.de_json(json.loads(json_str), get_application().bot)
+            # Создаем новый event loop для асинхронного вызова
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
 
-            # Обрабатываем обновление в асинхронной функции
-            asyncio.run(get_application().process_update(update))
+            # Асинхронно получаем application и обрабатываем update
+            app = loop.run_until_complete(get_application())
+            update = Update.de_json(json.loads(json_str), app.bot)
+            loop.run_until_complete(app.process_update(update))
 
             # Telegram ожидает ответ "OK"
             return HttpResponse("OK")
