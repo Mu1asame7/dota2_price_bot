@@ -1,5 +1,5 @@
 services:
-  # Django веб-сервер
+  # Django веб-сервер (он же будет принимать вебхуки)
   - type: web
     name: dota2-bot-django
     runtime: python
@@ -14,38 +14,15 @@ services:
         fromDatabase:
           name: dota2-bot-database
           property: connectionString
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: false
-      - key: TELEGRAM_BOT_TOKEN
-        sync: false
       - key: ALLOWED_HOSTS
         value: .onrender.com
 
-  # Telegram бот (background worker)
-  - type: worker
-    name: dota2-bot-worker
-    runtime: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py runbot
-    envVars:
-      - key: TELEGRAM_BOT_TOKEN
-        sync: false
-      - key: SECRET_KEY
-        fromService:
-          name: dota2-bot-django
-          type: web
-          envVarKey: SECRET_KEY
-      - key: DATABASE_URL
-        fromDatabase:
-          name: dota2-bot-database
-          property: connectionString
-
-# Отдельное объявление базы данных PostgreSQL
 databases:
   - name: dota2-bot-database
     plan: free
-    databaseName: dota2_bot
-    user: dota2_bot_user

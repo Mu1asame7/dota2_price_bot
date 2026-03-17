@@ -1,6 +1,7 @@
-Django==5.0.6
-python-telegram-bot==20.3  # ← ИЗМЕНИ ЭТУ СТРОКУ
+Django==5.0.8
+python-telegram-bot==20.3
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
 requests==2.31.0
 python-dotenv==1.0.0
-# psycopg2-binary==2.9.9
-asgiref>=3.7.0
+asgiref==3.8.1

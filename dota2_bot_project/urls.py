@@ -19,4 +19,5 @@ from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('webhook/', telegram_webhook, name='telegram_webhook'),
 ]
