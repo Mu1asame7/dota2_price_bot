@@ -14,6 +14,8 @@ from asgiref.sync import sync_to_async
 from bot.services.steam_api import SteamAPI
 from bot.models import TelegramUser, ItemQuery
 
+from django.db.models import Count
+
 # Настройка логирования
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -51,6 +53,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "ℹ️ Доступные команды:\n"
         "/start - Начало работы\n"
+        "/profile - Статистика запросов пользователя\n"
         "/help - Показать это сообщение\n\n"
         "Просто отправь мне название предмета, например: 'Pudge Arcana'"
     )
