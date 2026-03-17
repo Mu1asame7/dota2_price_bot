@@ -1,10 +1,15 @@
 services:
-  # Django веб-сервер через Docker
   - type: web
     name: dota2-bot-django
-    env: docker
-    dockerfilePath: ./Dockerfile
+    runtime: python
     plan: free
+    # 👇 ЭТА СТРОКА ДОЛЖНА БЫТЬ (команда сборки)
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py migrate           # <-- миграции здесь
+      python manage.py collectstatic --noinput
+    # 👇 ЭТА СТРОКА ДОЛЖНА БЫТЬ (команда запуска)
+    startCommand: gunicorn dota2_bot_project.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
