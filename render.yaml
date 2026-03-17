@@ -1,8 +1,8 @@
 services:
-  # Django веб-сервер (он же будет принимать вебхуки)
   - type: web
     name: dota2-bot-django
     runtime: python
+    pythonVersion: 3.12.8  # 👈 добавить эту строку
     plan: free
     buildCommand: |
       pip install -r requirements.txt
