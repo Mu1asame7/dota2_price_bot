@@ -1,25 +1,34 @@
-# Базовый образ
+# Используем официальный образ Python
 FROM python:3.12-slim
 
-# Устанавливаем системные зависимости (ЭТО НУЖНО ДЕЛАТЬ ПЕРВЫМ, до создания пользователя)
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# 1. Устанавливаем системные зависимости, необходимые для psycopg2.
+#    Это нужно делать ДО установки Python-пакетов и от пользователя root.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Создаем рабочую директорию
+# 2. Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем requirements и устанавливаем зависимости Python
+# 3. Копируем файл с зависимостями и устанавливаем их.
+#    Копирование только requirements.txt сначала помогает использовать кэш Docker.
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем остальной код
+# 4. Копируем остальной код проекта
 COPY . .
 
-# Создаем непривилегированного пользователя (ТЕПЕРЬ ЭТО БЕЗОПАСНО)
+# 5. Создаем непривилегированного пользователя для безопасности
 RUN adduser --disabled-password --gecos "" appuser
 
-# Переключаемся на обычного пользователя
+# 6. Меняем владельца файлов на созданного пользователя
+RUN chown -R appuser:appuser /app
+
+# 7. Переключаемся на обычного пользователя
 USER appuser
 
-# Команда запуска
-CMD ["gunicorn", "dota2_bot_project.wsgi:application", "--bind", "0.0.0.0:10000"]
+# 8. Команда для запуска приложения
+#    Используем PORT из окружения Render или 10000 по умолчанию
+CMD gunicorn dota2_bot_project.wsgi:application --bind 0.0.0.0:${PORT:-10000}
