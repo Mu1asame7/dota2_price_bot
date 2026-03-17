@@ -1,26 +1,25 @@
-# Базовый образ — "чистый лист" с Python [citation:2]
-FROM python:3.11-slim
+# Базовый образ
+FROM python:3.12-slim
 
-# Отключаем запись .pyc файлов и буферизацию вывода (чтобы логи сразу появлялись) [citation:2]
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# Устанавливаем системные зависимости (ЭТО НУЖНО ДЕЛАТЬ ПЕРВЫМ, до создания пользователя)
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем рабочую папку внутри контейнера [citation:2]
+# Создаем рабочую директорию
 WORKDIR /app
 
-# Копируем файл с зависимостями и устанавливаем их [citation:2]
+# Копируем requirements и устанавливаем зависимости Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь наш проект внутрь контейнера [citation:2]
+# Копируем остальной код
 COPY . .
 
-# Создаем непривилегированного пользователя для безопасности [citation:2]
+# Создаем непривилегированного пользователя (ТЕПЕРЬ ЭТО БЕЗОПАСНО)
 RUN adduser --disabled-password --gecos "" appuser
+
+# Переключаемся на обычного пользователя
 USER appuser
 
-# Команда по умолчанию (она будет переопределена в docker-compose)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Команда запуска
+CMD ["gunicorn", "dota2_bot_project.wsgi:application", "--bind", "0.0.0.0:10000"]
