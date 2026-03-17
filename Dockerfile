@@ -1,14 +1,6 @@
 # Используем официальный образ Python
 FROM python:3.12-slim
 
-# 1. Устанавливаем системные зависимости, необходимые для psycopg2.
-#    Это нужно делать ДО установки Python-пакетов и от пользователя root.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libpq-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # 2. Устанавливаем рабочую директорию
 WORKDIR /app
 
