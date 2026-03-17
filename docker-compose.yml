@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Сервис для Django (веб-сервер и админка)
+  django:
+    build: .  # Собрать образ из текущей папки (где лежит Dockerfile)
+    container_name: django_app
+    # Команда для запуска: миграции + gunicorn (веб-сервер для Django)
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn dota2_bot_project.wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"  # Пробрасываем порт наружу
+    env_file:
+      - .env  # Загружаем переменные окружения из файла .env
+    restart: always  # Если упадет — перезапустить
+
+  # Сервис для Telegram бота
+  bot:
+    build: .
+    container_name: telegram_bot
+    command: python manage.py runbot  # Запускаем бота
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - django  # Бот запустится после Django (на всякий случай)
+
+  # Опционально: nginx для отдачи статики (упростит жизнь)
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Подключаем наш конфиг
+      - static_volume:/static  # Отдаем статику Django
+    ports:
+      - "80:80"  # Слушаем 80 порт
+    depends_on:
+      - django
+    restart: always
+
+volumes:
+  static_volume:  # Общий том для статических файлов
